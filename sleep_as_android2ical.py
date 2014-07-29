@@ -5,6 +5,10 @@
 
 from datetime import datetime
 import urllib2
+import shutil
+import urlparse
+import os
+
 
 def readSB(f):
     sleeps = list()
@@ -19,6 +23,11 @@ def readSB(f):
             values = line.split(',')
 
         d = dict(zip(keys, values))
+
+        # processing certain keys
+        d["Comment"] = d["Comment"].strip('"').strip('#home').strip('#newmoon').strip('manually added')
+        d["Rating"] = d["Rating"].strip('"')
+
         sleeps.append(d)
 
     return sleeps
@@ -28,21 +37,29 @@ def sleep2dates(sleep):
     sleep_start = datetime.strptime(sleep['From'], '"%d. %m. %Y %H:%M"')
     return [sleep_start, sleep_stop]
 
-def writeIcal(sleeps, f, fmt):
+def writeIcal(sleeps, f):
     from icalendar import Calendar, Event
     import md5
 
     cal = Calendar()
-    cal.add('prodid', 'StevenZhangCalendar')
-    cal.add('version', '2.0')
+
+    # header data
+    cal.add('calscale', 'Gregorian')
+    cal.add('method', 'publish')
+    cal.add('x-wr-caldesc', "iCal feed from sleep as android data. see https://github.com/stevenqzhang/sleepasandroid2ical")
+    cal.add('prodid', 'calendar')
+    cal.add('version', '3.0')
     cal.add('X-WR-CALNAME', 'Sleep As Android Import')
     cal.add('X-WR-TIMEZONE', 'America/Los_Angeles')
 
+    summary_fmt = '{Comment} '
+    description_fmt = 'Rating {Rating} \n \n Made with github.com/stevenqzhang/sleepasandroid2ical'
     for sleep in sleeps:
         dts = sleep2dates(sleep)
 
         event = Event()
-        event.add('summary', fmt.format(**sleep))
+        event.add('summary', summary_fmt.format(**sleep))
+        event.add('description', description_fmt.format(**sleep))
         event.add('dtstart', dts[0])
         event.add('dtend', dts[1])
         event['uid'] = md5.new(str(dts[0])+'SleepBot'+str(dts[1])).hexdigest()
@@ -51,11 +68,8 @@ def writeIcal(sleeps, f, fmt):
 
     f.write(cal.to_ical())
 
-import urllib2
-import shutil
-import urlparse
-import os
 
+# from http://stackoverflow.com/a/2067142/1621636
 def download(url, fileName=None):
     def getFileName(url,openUrl):
         if 'Content-Disposition' in openUrl.info():
@@ -85,5 +99,5 @@ if __name__ == "__main__":
     sleeps = readSB(csvfile)
 
     icalfile = open(sys.argv[2], 'wb')
-    writeIcal(sleeps, icalfile, 'Sleep {Comment} \n Rating {Rating} \n SleepAndroid')
+    writeIcal(sleeps, icalfile)
 

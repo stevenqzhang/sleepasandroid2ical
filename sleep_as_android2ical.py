@@ -37,7 +37,7 @@ def sleep2dates(sleep):
     sleep_start = datetime.strptime(sleep['From'], '"%d. %m. %Y %H:%M"')
     return [sleep_start, sleep_stop]
 
-def writeIcal(sleeps, f):
+def writeIcal(sleeps, f, cleanFlag = False):
     from icalendar import Calendar, Event
     import md5
 
@@ -51,15 +51,21 @@ def writeIcal(sleeps, f):
     cal.add('version', '3.0')
     cal.add('X-WR-CALNAME', 'Sleep As Android Import')
     cal.add('X-WR-TIMEZONE', 'America/Los_Angeles')
-
     summary_fmt = '{Comment} '
     description_fmt = 'Rating {Rating} \n \n Made with github.com/stevenqzhang/sleepasandroid2ical'
+
     for sleep in sleeps:
         dts = sleep2dates(sleep)
 
         event = Event()
-        event.add('summary', summary_fmt.format(**sleep))
-        event.add('description', description_fmt.format(**sleep))
+
+        if cleanFlag == False:
+            event.add('summary', summary_fmt.format(**sleep))
+            event.add('description', description_fmt.format(**sleep))
+        else:
+            event.add('description', "blank")
+            event.add('summary', "blank")
+
         event.add('dtstart', dts[0])
         event.add('dtend', dts[1])
         event['uid'] = md5.new(str(dts[0])+'SleepBot'+str(dts[1])).hexdigest()
@@ -99,5 +105,9 @@ if __name__ == "__main__":
     sleeps = readSB(csvfile)
 
     icalfile = open(sys.argv[2], 'wb')
-    writeIcal(sleeps, icalfile)
+
+    if sys.argv[3] == "-c":
+        cleanFlag = True
+
+    writeIcal(sleeps, icalfile, cleanFlag)
 

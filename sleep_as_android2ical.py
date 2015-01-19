@@ -88,6 +88,7 @@ def writeIcal(sleeps, f, cleanFlag = False, prettyFlag = False):
         cal.add_component(event)
 
     if (prettyFlag):
+        f.write("Made with <a href = 'goo.gl/1psE1m'> https://github.com/stevenqzhang/sleepasandroid2ical </a>")
 
         lastDtendDay = -1
         for event in cal.subcomponents:

@@ -37,7 +37,14 @@ def sleep2dates(sleep):
     sleep_start = datetime.strptime(sleep['From'], '"%d. %m. %Y %H:%M"')
     return [sleep_start, sleep_stop]
 
-def writeIcal(sleeps, f, cleanFlag = False):
+#return true if contains midnight
+def containsMidnight(dts0, dts1):
+    if (dts0.hour > dts1.hour):
+        return True
+    else:
+        return False
+
+def writeIcal(sleeps, f, cleanFlag = False, prettyFlag = False):
     from icalendar import Calendar, Event
     import md5
 
@@ -68,11 +75,44 @@ def writeIcal(sleeps, f, cleanFlag = False):
 
         event.add('dtstart', dts[0])
         event.add('dtend', dts[1])
+
         event['uid'] = md5.new(str(dts[0])+'SleepBot'+str(dts[1])).hexdigest()
 
         cal.add_component(event)
 
-    f.write(cal.to_ical())
+    if (prettyFlag):
+
+        lastDtendDay = -1
+        for event in cal.subcomponents:
+
+
+            start = event['dtstart'].dt
+            stop = event['dtend'].dt
+
+
+            # define day boundary
+            if(start.day != lastDtendDay):
+                f.write("================" +start.strftime("%m-%d-%Y")  + "=============<br/>")
+
+            lastDtendDay = stop.day
+
+
+            # if sleep start is before midnight, and sleep end is after midnight, there should be ...
+
+            containsMidight = containsMidnight(start, stop)
+
+            if(containsMidight):
+                f.write("<font color='red'>")
+
+            f.write("sleep start" + start.strftime('%X') + "<br/> sleep end:" + stop.strftime('%X') + "<br/><br/>")
+            
+            if(containsMidight):
+                f.write("</font>")
+                
+
+    else:
+        f.write(cal.to_ical())
+
 
 
 # from http://stackoverflow.com/a/2067142/1621636
@@ -100,8 +140,8 @@ def download(url, fileName=None):
 if __name__ == "__main__":
     import sys
 
-    download(sys.argv[1], "temp_csv")
-    csvfile = open("temp_csv", 'rb')
+    download(sys.argv[1], "temp_csv.txt")
+    csvfile = open("temp_csv.txt", 'rb')
     sleeps = readSB(csvfile)
 
     icalfile = open(sys.argv[2], 'wb')
@@ -109,5 +149,8 @@ if __name__ == "__main__":
     if sys.argv[3] == "-c":
         cleanFlag = True
 
-    writeIcal(sleeps, icalfile, cleanFlag)
+    if sys.argv[4] == "-p":
+        prettyFlag = True
+
+    writeIcal(sleeps, icalfile, cleanFlag, prettyFlag)
 

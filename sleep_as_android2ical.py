@@ -51,7 +51,7 @@ def containsMidnight(dts0, dts1):
     else:
         return False
 
-def writeIcal(sleeps, f, cleanFlag = False, prettyFlag = False):
+def writeIcal(sleeps, f, cleanFlag = False, htmlFlag = False):
     from icalendar import Calendar, Event
     import md5
 
@@ -87,7 +87,7 @@ def writeIcal(sleeps, f, cleanFlag = False, prettyFlag = False):
 
         cal.add_component(event)
 
-    if (prettyFlag):
+    if (htmlFlag):
         f.write("Made with <a href = 'goo.gl/1psE1m'> https://github.com/stevenqzhang/sleepasandroid2ical </a>")
 
         lastDtendDay = -1
@@ -159,9 +159,9 @@ if __name__ == "__main__":
         cleanFlag = True
 
     #todo get these to parse with blanks
-    prettyFlag = False
+    htmlFlag = False
     if sys.argv[4] == "-p":
-        prettyFlag = True
+        htmlFlag = True
 
-    writeIcal(sleeps, icalfile, cleanFlag, prettyFlag)
+    writeIcal(sleeps, icalfile, cleanFlag, htmlFlag)
 

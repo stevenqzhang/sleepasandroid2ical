@@ -15,6 +15,9 @@ def readSB(f):
     keys = f.readline()
     keys = keys.split(',')
 
+    #set to make sure we don't repeat stuff
+    unique_sleeps = set()
+
     while True:
         line = f.readline()
         if not line: break
@@ -28,7 +31,11 @@ def readSB(f):
         d["Comment"] = d["Comment"].strip('"').strip('#home').strip('#newmoon').strip('manually added')
         d["Rating"] = d["Rating"].strip('"')
 
-        sleeps.append(d)
+        if (d["Id"] in unique_sleeps):
+            print "duplicate sleepcloud entry: " + d["Id"]
+        else:
+            sleeps.append(d)
+        unique_sleeps.add(d["Id"])
 
     return sleeps
 
@@ -102,7 +109,7 @@ def writeIcal(sleeps, f, cleanFlag = False, prettyFlag = False):
             containsMidight = containsMidnight(start, stop)
 
             if(containsMidight):
-                f.write("<font color='red'>")
+                f.write("<font color='green'> GOOD! <br/> ")
 
             f.write("sleep start" + start.strftime('%X') + "<br/> sleep end:" + stop.strftime('%X') + "<br/><br/>")
             
@@ -146,9 +153,12 @@ if __name__ == "__main__":
 
     icalfile = open(sys.argv[2], 'wb')
 
+    cleanFlag = False
     if sys.argv[3] == "-c":
         cleanFlag = True
 
+    #todo get these to parse with blanks
+    prettyFlag = False
     if sys.argv[4] == "-p":
         prettyFlag = True
 

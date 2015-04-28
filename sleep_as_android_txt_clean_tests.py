@@ -8,11 +8,11 @@ from datetime import timedelta
 from sleep_as_android_txt_clean import *
 
 def test_wrapDateTime_no_need_for_wrapping():
-    dt = datetime.strptime("14. 01. 2015 17:22", '%d. %m. %Y %H:%M')
+    dt = datetime.strptime("14. 01. 2015 19:59", '%d. %m. %Y %H:%M')
     (actual_dateWrapped, actual_hourWrapped) = wrapDateTime(dt)
     expected_dateWrapped = datetime.strptime("14. 01. 2015", '%d. %m. %Y').date()
     eq_(actual_dateWrapped, expected_dateWrapped)
-    assert_almost_equal(actual_hourWrapped, 17.366666, 4)
+    assert_almost_equal(actual_hourWrapped, 19.983, 3)
 
 def test_wrapDateTime_need_wrapping():
     dt = datetime.strptime("14. 01. 2015 20:01", '%d. %m. %Y %H:%M')
